@@ -45,10 +45,17 @@ async def main():
         if user_input.strip("> ") in ["exit", "quit"]:
             print("Goodbye!")
             break
-    await add_user_query_to_history(
-        session_service, APP_NAME, USER_ID, SESSION_ID, user_input
+        await add_user_query_to_history(
+            session_service, APP_NAME, USER_ID, SESSION_ID, user_input
+        )
+        await call_agent_async(runner, USER_ID, SESSION_ID, user_input)
+
+    final_session = await session_service.get_session(
+        app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID
     )
-    await call_agent_async(runner, USER_ID, SESSION_ID, user_input)
+    print("\nFinal Session State:")
+    for key, value in final_session.state.items():
+        print(f"{key}: {value}")
 
 
 if __name__ == "__main__":

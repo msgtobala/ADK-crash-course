@@ -3,6 +3,7 @@ from datetime import datetime
 from google.genai import types
 
 
+# ANSI color codes for terminal output
 class Colors:
     RESET = "\033[0m"
     BOLD = "\033[1m"
@@ -32,18 +33,18 @@ class Colors:
 async def update_interaction_history(session_service, app_name, user_id, session_id, entry):
     """Add an entry to the interaction history in state.
 
-       Args:
-           session_service: The session service instance
-           app_name: The application name
-           user_id: The user ID
-           session_id: The session ID
-           entry: A dictionary containing the interaction data
-               - requires 'action' key (e.g., 'user_query', 'agent_response')
-               - other keys are flexible depending on the action type
-       """
+    Args:
+        session_service: The session service instance
+        app_name: The application name
+        user_id: The user ID
+        session_id: The session ID
+        entry: A dictionary containing the interaction data
+            - requires 'action' key (e.g., 'user_query', 'agent_response')
+            - other keys are flexible depending on the action type
+    """
     try:
         # Get current session
-        session = session_service.get_session(
+        session = await session_service.get_session(
             app_name=app_name, user_id=user_id, session_id=session_id
         )
 
@@ -62,7 +63,7 @@ async def update_interaction_history(session_service, app_name, user_id, session
         updated_state["interaction_history"] = interaction_history
 
         # Create a new session with updated state
-        session_service.create_session(
+        await session_service.create_session(
             app_name=app_name,
             user_id=user_id,
             session_id=session_id,
@@ -86,11 +87,11 @@ async def add_user_query_to_history(session_service, app_name, user_id, session_
     )
 
 
-def add_agent_response_to_history(
+async def add_agent_response_to_history(
         session_service, app_name, user_id, session_id, agent_name, response
 ):
     """Add an agent response to the interaction history."""
-    update_interaction_history(
+    await update_interaction_history(
         session_service,
         app_name,
         user_id,
@@ -103,19 +104,19 @@ def add_agent_response_to_history(
     )
 
 
-def display_state(
+async def display_state(
         session_service, app_name, user_id, session_id, label="Current State"
 ):
     """Display the current session state in a formatted way."""
     try:
-        session = session_service.get_session(
+        session = await session_service.get_session(
             app_name=app_name, user_id=user_id, session_id=session_id
         )
 
         # Format the output with clear sections
         print(f"\n{'-' * 10} {label} {'-' * 10}")
 
-        # Handle the username
+        # Handle the user name
         user_name = session.state.get("user_name", "Unknown")
         print(f"👤 User: {user_name}")
 
@@ -231,7 +232,7 @@ async def call_agent_async(runner, user_id, session_id, query):
     agent_name = None
 
     # Display state before processing the message
-    display_state(
+    await display_state(
         runner.session_service,
         runner.app_name,
         user_id,
@@ -253,8 +254,9 @@ async def call_agent_async(runner, user_id, session_id, query):
     except Exception as e:
         print(f"{Colors.BG_RED}{Colors.WHITE}ERROR during agent run: {e}{Colors.RESET}")
 
+    # Add the agent response to interaction history if we got a final response
     if final_response_text and agent_name:
-        add_agent_response_to_history(
+        await add_agent_response_to_history(
             runner.session_service,
             runner.app_name,
             user_id,
@@ -262,7 +264,9 @@ async def call_agent_async(runner, user_id, session_id, query):
             agent_name,
             final_response_text,
         )
-    display_state(
+
+    # Display state after processing the message
+    await display_state(
         runner.session_service,
         runner.app_name,
         user_id,
