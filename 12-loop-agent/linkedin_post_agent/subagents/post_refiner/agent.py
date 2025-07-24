@@ -16,14 +16,14 @@ post_refiner = LlmAgent(
     instruction="""You are a LinkedIn Post Refiner.
 
     Your task is to refine a LinkedIn post based on review feedback.
-
+  
     ## INPUTS
     **Current Post:**
     {current_post}
-
+    
     **Review Feedback:**
     {review_feedback}
-
+    
     ## TASK
     Carefully apply the feedback to improve the post.
     - Maintain the original tone and theme of the post
@@ -40,7 +40,7 @@ post_refiner = LlmAgent(
       - NO hashtags
       - Show genuine enthusiasm
       - Highlight practical applications
-
+    
     ## OUTPUT INSTRUCTIONS
     - Output ONLY the refined post content
     - Do not add explanations or justifications
